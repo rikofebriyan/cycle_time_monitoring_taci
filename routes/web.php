@@ -14,9 +14,17 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('/dashboard', function () {
-    return Inertia::render('Dashboard');
+Route::get('/WireCutting', function () {
+    return Inertia::render('WireCutting');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/CrimpingEyelet', function () {
+    return Inertia::render('CrimpingEyelet');
+})->middleware(['auth', 'verified'])->name('CrimpingEyelet');
+
+Route::get('/CrimpingConnector', function () {
+    return Inertia::render('CrimpingConnector');
+})->middleware(['auth', 'verified'])->name('CrimpingConnector');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
