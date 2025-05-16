@@ -1,0 +1,27 @@
+Nama Lengkap dan NIM:
+
+Riko Febriyan - 0112522032
+
+Nama Tim atau Grup:
+
+Kelompok 1 - CodeForge
+
+Sprint ke-:
+Sprint 1
+
+User Story atau Task terkait:
+Sebagai PE, saya ingin mengetahui cycle time akurat dan otomatis pada mesin Wire Cutting, Crimping Eyeled, dan Crimping Connector
+
+Link Dashboard (Trello Card) yang dikerjakan:
+
+https://trello.com/b/LqGvy1FC/sprint-1
+
+Link Commit Git yang dibuat:
+
+https://github.com/rikofebriyan/cycle_time_monitoring_taci/commits?author=rikofebriyan
+
+Deskripsi singkat pekerjaan:
+
+
+
+Pada minggu ini, saya berhasil membuat tabel database untuk pengelolaan pengguna dan melakukan migration untuk menyinkronkan perubahan ke database. Pekerjaan ini dilakukan untuk mendukung fitur autentikasi pengguna yang sedang dikembangkan oleh tim. Setelah itu, saya melakukan commit pertama yang menyertakan struktur tabel dan migration.
