@@ -53,8 +53,8 @@ function handleImageError() {
 
             <!-- Main Section -->
             <main class="flex-grow flex flex-col items-center justify-center text-white text-center">
-                <h2 class="text-6xl font-bold drop-shadow-xl mb-6">Toyoda Precepts / Basic Philosophy</h2>
-                <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl max-w-3xl shadow-lg text-left">
+                <h2 class="text-6xl font-bold drop-shadow-xl mb-12">Toyoda Precepts / Basic Philosophy</h2>
+                <div class="bg-white/10 backdrop-blur-md p-12 rounded-2xl max-w-5xl shadow-lg text-left">
                     <ul class="list-decimal list-inside text-2xl space-y-2">
                         <li>Always be faithful to your duties, thereby contributing to the Company and to the overall good.</li>
                         <li>Always be studious and creative, striving to stay ahead of the times.</li>
