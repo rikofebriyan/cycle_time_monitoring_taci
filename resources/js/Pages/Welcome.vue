@@ -54,7 +54,11 @@ function handleImageError() {
             <!-- Main Section -->
             <main class="flex-grow flex flex-col items-center justify-center text-white text-center">
                 <h2 class="text-6xl font-bold drop-shadow-xl mb-12">Toyoda Precepts / Basic Philosophy</h2>
-                <div class="bg-white/10 backdrop-blur-md p-12 rounded-2xl max-w-5xl shadow-lg text-left">
+
+                 
+        <div class="bg-white/10 backdrop-blur-md p-12 rounded-2xl max-w-5xl shadow-lg text-left">
+            <div class="flex items-center space-x-4">
+        <img src="/images/toyoda.jpg" alt="Logo" class="w-80 h-80" />
                     <ul class="list-decimal list-inside text-2xl space-y-2">
                         <li>Always be faithful to your duties, thereby contributing to the Company and to the overall good.</li>
                         <li>Always be studious and creative, striving to stay ahead of the times.</li>
@@ -63,6 +67,8 @@ function handleImageError() {
                         <li>Always have respect for God, and remember to be grateful at all times.</li>
                     </ul>
                 </div>
+    </div>
+                
             </main>
 
             <footer class="py-6 text-center text-white/70 text-sm">
