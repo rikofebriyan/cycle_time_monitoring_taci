@@ -53,17 +53,18 @@ function handleImageError() {
 
             <!-- Main Section -->
             <main class="flex-grow flex flex-col items-center justify-center text-white text-center">
-                <h2 class="text-4xl font-bold drop-shadow-lg mb-6">Monitoring Cycle Time</h2>
-                <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl max-w-3xl shadow-lg">
-                    <p class="text-lg">
-                        Sistem ini membantu Anda memantau dan menganalisis waktu siklus produksi secara real-time.
-                        Gunakan dashboard ini untuk mengidentifikasi bottleneck, mengoptimalkan alur kerja, dan
-                        meningkatkan efisiensi operasional Anda.
-                    </p>
+                <h2 class="text-6xl font-bold drop-shadow-xl mb-6">Toyoda Precepts / Basic Philosophy</h2>
+                <div class="bg-white/10 backdrop-blur-md p-8 rounded-2xl max-w-3xl shadow-lg text-left">
+                    <ul class="list-decimal list-inside text-2xl space-y-2">
+                        <li>Always be faithful to your duties, thereby contributing to the Company and to the overall good.</li>
+                        <li>Always be studious and creative, striving to stay ahead of the times.</li>
+                        <li>Always be practical and avoid frivolousness.</li>
+                        <li>Always strive to build a homelike atmosphere at work that is warm and friendly.</li>
+                        <li>Always have respect for God, and remember to be grateful at all times.</li>
+                    </ul>
                 </div>
             </main>
 
-            <!-- Footer -->
             <footer class="py-6 text-center text-white/70 text-sm">
                 Powered by UAI
             </footer>
