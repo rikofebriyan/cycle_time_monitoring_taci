@@ -40,7 +40,7 @@ class TabelController extends Controller
         // Query data dari database dengan filter CT dan transformasi
         $rawData = DB::table('01_cutting_lead_wire_ct')
             ->select('id', 'TIMESTAMP', 'JIG_NUMBER', 'MODEL', 'CT')
-            ->whereBetween('CT', [40, 370])
+            ->whereBetween('CT', [0, 370])
             ->orderByDesc('TIMESTAMP')
             ->limit(1000)
             ->get();
