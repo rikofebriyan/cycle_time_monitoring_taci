@@ -34,4 +34,23 @@ class TabelController extends Controller
         // Mengembalikan data dalam format JSON
         return response()->json($data);
     }
+
+    public function cuttingLeadWire()
+    {
+        // Query data dari database dengan filter CT dan transformasi
+        $rawData = DB::table('01_cutting_lead_wire_ct')
+            ->select('id', 'TIMESTAMP', 'JIG_NUMBER', 'MODEL', 'CT')
+            ->whereBetween('CT', [40, 370])
+            ->orderByDesc('TIMESTAMP')
+            ->limit(1000)
+            ->get();
+
+        // Bagi nilai CT dan bulatkan 1 angka di belakang koma
+        $data = $rawData->map(function ($item) {
+            $item->CT = round($item->CT / 10, 1);
+            return $item;
+        });
+
+        return response()->json($data);
+    }
 }

@@ -40,5 +40,6 @@ Route::get('/tabel_ct', function () {
 })->middleware(['auth', 'verified'])->name('table');
 
 Route::get('/getdata', [TabelController::class, 'getData']);
+Route::get('/cutting-lead-wire', [TabelController::class, 'cuttingLeadWire']);
 
 require __DIR__ . '/auth.php';
