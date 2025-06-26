@@ -190,24 +190,72 @@ export default {
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
             const link = document.createElement('a')
             link.href = URL.createObjectURL(blob)
-            link.download = 'data.csv'
+            link.download = 'ct_stator.csv'
             link.click()
         },
 
         downloadExcel() {
-            const ws = XLSX.utils.json_to_sheet(this.data.data.map(row => ({
-                ID: row.id,
-                Date: row.date,  // Tanggal
-                Time: row.time,  // Jam
-                Model: row.MODEL,
-                CT: row.CT
-            })))
+            const grouped = {};
+            const summaryData = [];
 
-            const wb = XLSX.utils.book_new()
-            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1')
+            // 1. Kelompokkan data berdasarkan MODEL
+            this.data.data.forEach(row => {
+                const model = row.MODEL;
+                if (!grouped[model]) {
+                    grouped[model] = [];
+                }
+                grouped[model].push({
+                    ID: row.id,
+                    Date: row.date,
+                    Time: row.time,
+                    Model: row.MODEL,
+                    CT: row.CT
+                });
+            });
 
-            XLSX.writeFile(wb, 'data.xlsx')
+            const wb = XLSX.utils.book_new();
+
+            // 2. Proses setiap group MODEL
+            for (const model in grouped) {
+                const rows = grouped[model];
+                const ctValues = rows.map(r => r.CT);
+                const min = Math.min(...ctValues);
+                const max = Math.max(...ctValues);
+                const avg = ctValues.reduce((a, b) => a + b, 0) / ctValues.length;
+                const count = rows.length;
+
+                // Tambahkan ke ringkasan global
+                summaryData.push({
+                    Model: model,
+                    Count: count,
+                    'Min CT': min,
+                    'Max CT': max,
+                    'Avg CT': Number(avg.toFixed(2))
+                });
+
+                // Tambahkan sheet detail
+                const summaryRows = [
+                    {},
+                    { Model: 'Min', CT: min },
+                    { Model: 'Max', CT: max },
+                    { Model: 'Average', CT: Number(avg.toFixed(2)) },
+                    { Model: 'Count', CT: count }
+                ];
+                const finalRows = [...rows, ...summaryRows];
+                const ws = XLSX.utils.json_to_sheet(finalRows);
+                XLSX.utils.book_append_sheet(wb, ws, model);
+            }
+
+            // 3. Buat sheet Summary
+            const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+            XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+            wb.SheetNames.unshift(wb.SheetNames.pop()); // Pindahkan Summary ke awal
+
+            // 4. Simpan
+            XLSX.writeFile(wb, 'summary_ct_stator.xlsx');
         }
+
+
 
     },
     mounted() {
