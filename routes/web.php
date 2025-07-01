@@ -15,6 +15,11 @@ Route::get('/', function () {
     ]);
 });
 
+
+Route::get('/Home', function () {
+    return Inertia::render('Home');
+})->middleware(['auth', 'verified'])->name('Home');
+
 Route::get('/WireCutting', function () {
     return Inertia::render('WireCutting');
 })->middleware(['auth', 'verified'])->name('dashboard');
@@ -26,6 +31,7 @@ Route::get('/CrimpingEyelet', function () {
 Route::get('/CrimpingConnector', function () {
     return Inertia::render('CrimpingConnector');
 })->middleware(['auth', 'verified'])->name('CrimpingConnector');
+
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -41,5 +47,7 @@ Route::get('/tabel_ct', function () {
 
 Route::get('/getdata', [TabelController::class, 'getData']);
 Route::get('/cutting-lead-wire', [TabelController::class, 'cuttingLeadWire']);
+Route::get('/api_crimpingEyelet', [TabelController::class, 'api_crimpingEyelet']);
+Route::get('/api_crimpingConnector', [TabelController::class, 'api_crimpingConnector']);
 
 require __DIR__ . '/auth.php';

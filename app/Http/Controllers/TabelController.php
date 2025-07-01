@@ -40,7 +40,45 @@ class TabelController extends Controller
         // Query data dari database dengan filter CT dan transformasi
         $rawData = DB::table('01_cutting_lead_wire_ct')
             ->select('id', 'TIMESTAMP', 'JIG_NUMBER', 'MODEL', 'CT')
-            ->whereBetween('CT', [0, 370])
+            ->whereBetween('CT', [100, 400])
+            ->orderByDesc('TIMESTAMP')
+            ->limit(1000)
+            ->get();
+
+        // Bagi nilai CT dan bulatkan 1 angka di belakang koma
+        $data = $rawData->map(function ($item) {
+            $item->CT = round($item->CT / 10, 1);
+            return $item;
+        });
+
+        return response()->json($data);
+    }
+
+
+    public function api_crimpingConnector()
+    {
+        // Query data dari database dengan filter CT dan transformasi
+        $rawData = DB::table('02_crimping_connector_ct')
+            ->select('id', 'TIMESTAMP', 'JIG_NUMBER', 'MODEL', 'CT')
+            ->whereBetween('CT', [100, 400])
+            ->orderByDesc('TIMESTAMP')
+            ->limit(1000)
+            ->get();
+
+        // Bagi nilai CT dan bulatkan 1 angka di belakang koma
+        $data = $rawData->map(function ($item) {
+            $item->CT = round($item->CT / 10, 1);
+            return $item;
+        });
+
+        return response()->json($data);
+    }
+    public function api_crimpingEyelet()
+    {
+        // Query data dari database dengan filter CT dan transformasi
+        $rawData = DB::table('03_crimping_eyelet_ct')
+            ->select('id', 'TIMESTAMP', 'JIG_NUMBER', 'MODEL', 'CT')
+            ->whereBetween('CT', [100, 400])
             ->orderByDesc('TIMESTAMP')
             ->limit(1000)
             ->get();

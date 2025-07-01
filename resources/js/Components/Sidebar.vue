@@ -30,6 +30,7 @@
 
             <nav class="mt-4 space-y-1 px-4">
 
+                <SidebarLink :href="'/Home'" icon="home" label="Home" />
                 <SidebarLink :href="'/tabel_ct'" icon="table" label="Database" />
                 <SidebarLink :href="'/CrimpingConnector'" icon="tools" label="Crimping Connector" />
                 <SidebarLink :href="'/CrimpingEyelet'" icon="anchor" label="Crimping Eyelet" />

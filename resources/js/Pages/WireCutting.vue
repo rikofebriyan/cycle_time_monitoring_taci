@@ -81,11 +81,10 @@ onMounted(async () => {
         summary.value.min = Math.min(...ctValues)
         summary.value.max = Math.max(...ctValues)
 
-        // Line Chart - CT vs Timestamp
-        // Format timestamp untuk menghilangkan mili detik
+        // Line Chart
         const formattedTimestamps = timestamps.map(timestamp => {
             const date = new Date(timestamp)
-            return date.toLocaleString('id-ID', { // Format sesuai kebutuhan
+            return date.toLocaleString('id-ID', {
                 year: 'numeric',
                 month: '2-digit',
                 day: '2-digit',
@@ -97,7 +96,7 @@ onMounted(async () => {
         new Chart(lineChartRef.value, {
             type: 'line',
             data: {
-                labels: formattedTimestamps,  // Menggunakan timestamp yang sudah diformat
+                labels: formattedTimestamps,
                 datasets: [{
                     label: 'Cycle Time',
                     borderColor: '#3b82f6',
@@ -122,30 +121,34 @@ onMounted(async () => {
                             display: true,
                             text: 'Timestamp (Tanpa Millisecond)'
                         }
+                    },
+                    y: {
+                        min: 0,
+                        max: 60,
+                        title: {
+                            display: true,
+                            text: 'Cycle Time'
+                        }
                     }
                 }
             }
         })
 
-
-        // Bar Chart - CT Distribution (dibulatkan ke bawah ke bilangan bulat)
+        // Bar Chart Distribusi CT
         const ctFrequencyMap = {}
-
-        // Hitung frekuensi CT setelah dibulatkan
         ctValues.forEach(ct => {
-            const roundedCT = Math.floor(ct) // kalau ingin dibulatkan: Math.round(ct)
+            const roundedCT = Math.floor(ct)
             if (!ctFrequencyMap[roundedCT]) ctFrequencyMap[roundedCT] = 0
             ctFrequencyMap[roundedCT] += 1
         })
 
-        // Urutkan nilai CT bulatnya
         const sortedCT = Object.keys(ctFrequencyMap).sort((a, b) => parseInt(a) - parseInt(b))
         const counts = sortedCT.map(key => ctFrequencyMap[key])
 
         new Chart(barChartRef.value, {
             type: 'bar',
             data: {
-                labels: sortedCT, // CT bilangan bulat (tanpa koma)
+                labels: sortedCT,
                 datasets: [{
                     label: 'Frekuensi CT (dibulatkan)',
                     backgroundColor: '#3b82f6',
@@ -185,16 +188,11 @@ onMounted(async () => {
             }
         })
 
-
-
-        // Daily Chart - Rata-rata CT per tanggal
+        // Daily Chart
         const dailyMap = {}
-
         cuttingData.value.forEach(item => {
-            // Ekstrak tanggal saja (tanpa waktu)
             const date = new Date(item.TIMESTAMP)
             const dateOnly = date.toISOString().split('T')[0]
-
             if (!dailyMap[dateOnly]) {
                 dailyMap[dateOnly] = []
             }
@@ -211,7 +209,7 @@ onMounted(async () => {
         new Chart(dailyChartRef.value, {
             type: 'bar',
             data: {
-                labels: dailyLabels, // Tanggal-tanggal tanpa jam
+                labels: dailyLabels,
                 datasets: [{
                     label: 'Avg CT per Day',
                     data: dailyValues,
@@ -219,7 +217,7 @@ onMounted(async () => {
                 }]
             },
             options: {
-                indexAxis: 'y', // y-axis = tanggal
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
