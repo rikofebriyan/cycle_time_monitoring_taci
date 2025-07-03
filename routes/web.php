@@ -49,5 +49,8 @@ Route::get('/getdata', [TabelController::class, 'getData']);
 Route::get('/cutting-lead-wire', [TabelController::class, 'cuttingLeadWire']);
 Route::get('/api_crimpingEyelet', [TabelController::class, 'api_crimpingEyelet']);
 Route::get('/api_crimpingConnector', [TabelController::class, 'api_crimpingConnector']);
+Route::get('/total_data_01', [TabelController::class, 'total_data_01']);
+Route::get('/total_data_02', [TabelController::class, 'total_data_02']);
+Route::get('/total_data_03', [TabelController::class, 'total_data_03']);
 
 require __DIR__ . '/auth.php';

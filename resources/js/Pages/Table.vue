@@ -8,17 +8,35 @@
         <div class="container mx-auto p-4 text-sm">
 
             <div class="mb-4 flex items-center justify-between">
-                <input v-model="searchQuery" @input="fetchData" type="text" placeholder="Search..."
-                    class="p-2 border border-gray-300 rounded" />
+                <div class="flex gap-2 items-center">
+                    <label for="typeSelect">Tipe:</label>
+                    <select v-model="selectedType" @change="fetchData"
+                        class="p-2 border border-gray-300 rounded text-sm" id="typeSelect">
+                        <option value="01">Wire Cutting</option>
+                        <option value="02">Crimping Connector</option>
+                        <option value="03">Crimping Eyelet</option>
+                    </select>
+
+                    <input v-model="searchQuery" @input="fetchData" type="text" placeholder="Search..."
+                        class="p-2 border border-gray-300 rounded" />
+                </div>
 
                 <!-- Tombol untuk Download CSV -->
                 <div>
-                    <button @click="downloadCSV" class="bg-green-500 text-white p-2 rounded">
+                    <!-- <button @click="downloadCSV" class="bg-green-500 text-white p-2 rounded">
                         Download CSV
-                    </button>
+                    </button> -->
                     <!-- Tombol untuk Download Excel -->
                     <button @click="downloadExcel" class="bg-blue-500 text-white p-2 rounded ml-2">
-                        Download Excel
+                        Download Excel Crimping Connector
+                    </button>
+                    <!-- Tombol untuk Download Excel -->
+                    <button @click="downloadExcel2" class="bg-blue-500 text-white p-2 rounded ml-2">
+                        Download Excel Crimpint Eyelet
+                    </button>
+                    <!-- Tombol untuk Download Excel -->
+                    <button @click="downloadExcel3" class="bg-blue-500 text-white p-2 rounded ml-2">
+                        Download Excel Wire Cutting
                     </button>
                 </div>
             </div>
@@ -101,6 +119,7 @@ export default {
             searchQuery: '',
             perPage: 15,
             currentPage: 1,
+            selectedType: '01', // default type
             data: {
                 data: [],
                 from: 0,
@@ -113,6 +132,7 @@ export default {
             sortOrder: 'desc',
         }
     },
+
     computed: {
         pageNumbers() {
             const pages = []
@@ -132,27 +152,24 @@ export default {
                 search: this.searchQuery,
                 sortBy: this.sortBy,
                 sortOrder: this.sortOrder,
+                type: this.selectedType // kirim tipe tabel ke backend
             }
 
             axios
                 .get('/getdata', { params })
                 .then((response) => {
-                    // Pisahkan timestamp menjadi dua kolom: tanggal dan jam
                     this.data = response.data;
                     this.data.data.forEach(row => {
                         const timestamp = new Date(row.TIMESTAMP);
-
-                        // Format tanggal (YYYY-MM-DD)
                         row.date = timestamp.toISOString().split('T')[0];
-
-                        // Format waktu (HH:mm:ss.SSS) dan hilangkan 'Z'
-                        row.time = timestamp.toISOString().split('T')[1].slice(0, 8); // Mengambil hanya HH:mm:ss
+                        row.time = timestamp.toISOString().split('T')[1].slice(0, 8);
                     });
                 })
                 .catch((error) => {
-                    console.error("There was an error fetching the data: ", error)
+                    console.error("Error fetching data:", error)
                 })
         },
+
 
 
         changePage(page) {
@@ -195,69 +212,233 @@ export default {
         },
 
         downloadExcel() {
-            const grouped = {};
-            const summaryData = [];
+            axios.get('/total_data_01')
+                .then(response => {
+                    const fetchedData = response.data;
 
-            // 1. Kelompokkan data berdasarkan MODEL
-            this.data.data.forEach(row => {
-                const model = row.MODEL;
-                if (!grouped[model]) {
-                    grouped[model] = [];
-                }
-                grouped[model].push({
-                    ID: row.id,
-                    Date: row.date,
-                    Time: row.time,
-                    Model: model,
-                    CT: parseFloat(row.CT) // pastikan CT adalah number
+                    const grouped = {};
+                    const summaryData = [];
+
+                    // 1. Kelompokkan data berdasarkan MODEL
+                    fetchedData.forEach(row => {
+                        const timestamp = new Date(row.TIMESTAMP);
+                        const model = row.MODEL;
+
+                        if (!grouped[model]) {
+                            grouped[model] = [];
+                        }
+
+                        grouped[model].push({
+                            ID: row.id,
+                            Date: timestamp.toISOString().split('T')[0],
+                            Time: timestamp.toISOString().split('T')[1].slice(0, 8),
+                            Model: model,
+                            CT: parseFloat(row.CT) // pastikan CT adalah number
+                        });
+                    });
+
+                    const wb = XLSX.utils.book_new();
+
+                    // 2. Proses tiap grup
+                    for (const model in grouped) {
+                        const rows = grouped[model];
+                        const ctValues = rows
+                            .map(r => parseFloat(r.CT))
+                            .filter(ct => !isNaN(ct));
+
+                        const min = Math.min(...ctValues);
+                        const max = Math.max(...ctValues);
+                        const avg = ctValues.length > 0
+                            ? parseFloat((ctValues.reduce((a, b) => a + b, 0) / ctValues.length).toFixed(2))
+                            : 0;
+                        const count = ctValues.length;
+
+                        // Tambahkan ke ringkasan global
+                        summaryData.push({
+                            Model: model,
+                            Count: count,
+                            'Min CT': min,
+                            'Max CT': max,
+                            'Avg CT': avg
+                        });
+
+                        // Gabungkan data asli dan summary
+                        const finalRows = [...rows,
+                        { ID: '', Date: '', Time: '', Model: 'Min', CT: min },
+                        { ID: '', Date: '', Time: '', Model: 'Max', CT: max },
+                        { ID: '', Date: '', Time: '', Model: 'Average', CT: avg },
+                        { ID: '', Date: '', Time: '', Model: 'Count', CT: count }
+                        ];
+
+                        const ws = XLSX.utils.json_to_sheet(finalRows);
+                        XLSX.utils.book_append_sheet(wb, ws, model);
+                    }
+
+                    // 3. Tambahkan sheet ringkasan
+                    const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+                    wb.SheetNames.unshift(wb.SheetNames.pop()); // Pindahkan Summary ke awal
+
+                    // 4. Simpan file
+                    XLSX.writeFile(wb, 'summary_01.xlsx');
+                })
+                .catch(error => {
+                    console.error("Gagal mengunduh data dari API: ", error);
                 });
-            });
+        },
 
-            const wb = XLSX.utils.book_new();
+        downloadExcel2() {
+            axios.get('/total_data_02')
+                .then(response => {
+                    const fetchedData = response.data;
 
-            // 2. Proses tiap grup
-            for (const model in grouped) {
-                const rows = grouped[model];
-                const ctValues = rows
-                    .map(r => parseFloat(r.CT))
-                    .filter(ct => !isNaN(ct));
+                    const grouped = {};
+                    const summaryData = [];
 
-                const min = Math.min(...ctValues);
-                const max = Math.max(...ctValues);
-                const avg = ctValues.length > 0
-                    ? parseFloat((ctValues.reduce((a, b) => a + b, 0) / ctValues.length).toFixed(2))
-                    : 0;
-                const count = ctValues.length;
+                    // 1. Kelompokkan data berdasarkan MODEL
+                    fetchedData.forEach(row => {
+                        const timestamp = new Date(row.TIMESTAMP);
+                        const model = row.MODEL;
 
-                // Tambahkan ke ringkasan global
-                summaryData.push({
-                    Model: model,
-                    Count: count,
-                    'Min CT': min,
-                    'Max CT': max,
-                    'Avg CT': avg
+                        if (!grouped[model]) {
+                            grouped[model] = [];
+                        }
+
+                        grouped[model].push({
+                            ID: row.id,
+                            Date: timestamp.toISOString().split('T')[0],
+                            Time: timestamp.toISOString().split('T')[1].slice(0, 8),
+                            Model: model,
+                            CT: parseFloat(row.CT) // pastikan CT adalah number
+                        });
+                    });
+
+                    const wb = XLSX.utils.book_new();
+
+                    // 2. Proses tiap grup
+                    for (const model in grouped) {
+                        const rows = grouped[model];
+                        const ctValues = rows
+                            .map(r => parseFloat(r.CT))
+                            .filter(ct => !isNaN(ct));
+
+                        const min = Math.min(...ctValues);
+                        const max = Math.max(...ctValues);
+                        const avg = ctValues.length > 0
+                            ? parseFloat((ctValues.reduce((a, b) => a + b, 0) / ctValues.length).toFixed(2))
+                            : 0;
+                        const count = ctValues.length;
+
+                        // Tambahkan ke ringkasan global
+                        summaryData.push({
+                            Model: model,
+                            Count: count,
+                            'Min CT': min,
+                            'Max CT': max,
+                            'Avg CT': avg
+                        });
+
+                        // Gabungkan data asli dan summary
+                        const finalRows = [...rows,
+                        { ID: '', Date: '', Time: '', Model: 'Min', CT: min },
+                        { ID: '', Date: '', Time: '', Model: 'Max', CT: max },
+                        { ID: '', Date: '', Time: '', Model: 'Average', CT: avg },
+                        { ID: '', Date: '', Time: '', Model: 'Count', CT: count }
+                        ];
+
+                        const ws = XLSX.utils.json_to_sheet(finalRows);
+                        XLSX.utils.book_append_sheet(wb, ws, model);
+                    }
+
+                    // 3. Tambahkan sheet ringkasan
+                    const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+                    wb.SheetNames.unshift(wb.SheetNames.pop()); // Pindahkan Summary ke awal
+
+                    // 4. Simpan file
+                    XLSX.writeFile(wb, 'summary_02.xlsx');
+                })
+                .catch(error => {
+                    console.error("Gagal mengunduh data dari API: ", error);
                 });
+        },
 
-                // Gabungkan data asli dan summary
-                const finalRows = [...rows,
-                { ID: '', Date: '', Time: '', Model: 'Min', CT: min },
-                { ID: '', Date: '', Time: '', Model: 'Max', CT: max },
-                { ID: '', Date: '', Time: '', Model: 'Average', CT: avg },
-                { ID: '', Date: '', Time: '', Model: 'Count', CT: count }
-                ];
+        downloadExcel3() {
+            axios.get('/total_data_03')
+                .then(response => {
+                    const fetchedData = response.data;
 
-                const ws = XLSX.utils.json_to_sheet(finalRows);
-                XLSX.utils.book_append_sheet(wb, ws, model);
-            }
+                    const grouped = {};
+                    const summaryData = [];
 
-            // 3. Tambahkan sheet ringkasan
-            const summarySheet = XLSX.utils.json_to_sheet(summaryData);
-            XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
-            wb.SheetNames.unshift(wb.SheetNames.pop()); // Pindahkan Summary ke awal
+                    // 1. Kelompokkan data berdasarkan MODEL
+                    fetchedData.forEach(row => {
+                        const timestamp = new Date(row.TIMESTAMP);
+                        const model = row.MODEL;
 
-            // 4. Simpan file
-            XLSX.writeFile(wb, 'summary_ct_stator.xlsx');
-        }
+                        if (!grouped[model]) {
+                            grouped[model] = [];
+                        }
+
+                        grouped[model].push({
+                            ID: row.id,
+                            Date: timestamp.toISOString().split('T')[0],
+                            Time: timestamp.toISOString().split('T')[1].slice(0, 8),
+                            Model: model,
+                            CT: parseFloat(row.CT) // pastikan CT adalah number
+                        });
+                    });
+
+                    const wb = XLSX.utils.book_new();
+
+                    // 2. Proses tiap grup
+                    for (const model in grouped) {
+                        const rows = grouped[model];
+                        const ctValues = rows
+                            .map(r => parseFloat(r.CT))
+                            .filter(ct => !isNaN(ct));
+
+                        const min = Math.min(...ctValues);
+                        const max = Math.max(...ctValues);
+                        const avg = ctValues.length > 0
+                            ? parseFloat((ctValues.reduce((a, b) => a + b, 0) / ctValues.length).toFixed(2))
+                            : 0;
+                        const count = ctValues.length;
+
+                        // Tambahkan ke ringkasan global
+                        summaryData.push({
+                            Model: model,
+                            Count: count,
+                            'Min CT': min,
+                            'Max CT': max,
+                            'Avg CT': avg
+                        });
+
+                        // Gabungkan data asli dan summary
+                        const finalRows = [...rows,
+                        { ID: '', Date: '', Time: '', Model: 'Min', CT: min },
+                        { ID: '', Date: '', Time: '', Model: 'Max', CT: max },
+                        { ID: '', Date: '', Time: '', Model: 'Average', CT: avg },
+                        { ID: '', Date: '', Time: '', Model: 'Count', CT: count }
+                        ];
+
+                        const ws = XLSX.utils.json_to_sheet(finalRows);
+                        XLSX.utils.book_append_sheet(wb, ws, model);
+                    }
+
+                    // 3. Tambahkan sheet ringkasan
+                    const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+                    XLSX.utils.book_append_sheet(wb, summarySheet, 'Summary');
+                    wb.SheetNames.unshift(wb.SheetNames.pop()); // Pindahkan Summary ke awal
+
+                    // 4. Simpan file
+                    XLSX.writeFile(wb, 'summary_03.xlsx');
+                })
+                .catch(error => {
+                    console.error("Gagal mengunduh data dari API: ", error);
+                });
+        },
+
 
     },
     mounted() {
